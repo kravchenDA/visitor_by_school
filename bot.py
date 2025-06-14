@@ -3,9 +3,9 @@ import schedule
 import time
 import threading
 import requests
-from datetime import datetime
+import datetime
 
-TOKEN = '7700709842:AAEThnHnCm7GGaiBYDnIOhZz3tN6KnZQ_vs'
+TOKEN = 'ENTER YOUR TOKEN'
 bot = telebot.TeleBot(TOKEN)
 
 # Хранилище для всех подписавшихся пользователей
@@ -21,7 +21,7 @@ def send_welcome(message):
     bot.reply_to(
         message,
         "Вы подписались на ежедневные опросы!\n"
-        "Они будут приходить в 6:10\n"
+        "Они будут приходить в 6:00\n"
         "Отписаться: /stop"
     )
 
@@ -38,11 +38,11 @@ def schedule_checker():
     while True:
         schedule.run_pending()
         time.sleep(10)
-        
+
 def send_scheduled_message():
     # Получаем текущий день недели
     current_weekday = datetime.now().weekday()
-    
+
     # Проверяем, является ли день субботой (5) или воскресеньем (6)
     if current_weekday in [5,6]:
         print("Сегодня выходной, опрос не будет отправлен.")
@@ -51,18 +51,18 @@ def send_scheduled_message():
     # Копируем список chat_id для безопасного доступа
     with lock:
         target_chats = subscribed_chats.copy()
-    
+
     if not target_chats:
         print("Нет активных подписчиков для отправки опроса")
         return
 
     QUESTION = 'Здравствуйте! Будете ли вы в школе? Если нет, укажите причину.'
-    OPTIONS = ['да', 'По болезни (справка)', 'По заявлению родителей', 
+    OPTIONS = ['да', 'По болезни (справка)', 'По заявлению родителей',
               'Освобождены по приказу директора (соревнования, олимпиады, конкурсы)',
               'Санаторное лечение', 'По неуважительной причине']
 
     url = f'https://api.telegram.org/bot{TOKEN}/sendPoll'
-    
+
     for chat_id in target_chats:
         try:
             payload = {
@@ -78,12 +78,12 @@ def send_scheduled_message():
                 print(f"Ошибка при отправке опроса в {chat_id}: {response.text}")
             else:
                 print(f"Опрос успешно отправлен в {chat_id}")
-                
+
         except Exception as e:
             print(f"Ошибка при отправке в {chat_id}: {str(e)}")
 
 # Настройка времени отправки
-schedule.every().day.at("6:10").do(send_scheduled_message)
+schedule.every().day.at("03:00").do(send_scheduled_message)# 6:00 по Минску
 
 # Запускаем поток для проверки планировщика
 threading.Thread(target=schedule_checker, daemon=True).start()
